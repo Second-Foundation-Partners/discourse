@@ -248,3 +248,6 @@ gem 'colored2', require: false
 gem 'maxminddb'
 
 gem 'rails_failover', require: false
+gem 'ruby-debug-ide'
+gem 'debase'
+gem 'mini_portile2'
