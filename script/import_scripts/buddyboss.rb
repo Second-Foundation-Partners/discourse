@@ -9,14 +9,14 @@ require File.expand_path(File.dirname(__FILE__) + "/base.rb")
 class ImportScripts::BuddyBoss < ImportScripts::Base
 
   BBOSS_HOST            ||= ENV['BBOSS_HOST'] || "127.0.0.1"
-  BBOSS_DB              ||= ENV['BBOSS_DB'] || "local"
+  BBOSS_DB              ||= ENV['BBOSS_DB'] || "wp_epsilontheory"
   BATCH_SIZE               ||= 1000
-  BBOSS_PW              ||= ENV['BBOSS_PW'] || "root"
-  BBOSS_USER            ||= ENV['BBOSS_USER'] || "root"
+  BBOSS_PW              ||= ENV['BBOSS_PW'] || "asdfasdf"
+  BBOSS_USER            ||= ENV['BBOSS_USER'] || "import"
   BBOSS_PREFIX          ||= ENV['BBOSS_PREFIX'] || "wp_"
-  BBOSS_PORT            ||= ENV['BBOSS_PORT'] || 10004
+  BBOSS_PORT            ||= ENV['BBOSS_PORT'] || 3306
   BBOSS_ATTACHMENTS_DIR ||= ENV['BBOSS_ATTACHMENTS_DIR'] || "/Users/cwhatley/Local Sites/epsilontheorycom/app/public/wp-content/uploads/"
-  POSTS_JSON            ||= ENV['POSTS_JSON'] || "/Users/cwhatley/2fp/et-discourse-migration/excerpt-dump.jsonl"
+  POSTS_JSON            ||= ENV['POSTS_JSON'] || "/Users/cwhatley/excerpt-dump.jsonl"
   NOTES_CATEGORY_ID ||= 47003
 
   def initialize
@@ -47,6 +47,7 @@ class ImportScripts::BuddyBoss < ImportScripts::Base
     create_permalinks
     import_comment_users
     import_post_topics
+    update_topic_titles
     import_post_comments
   end
 
@@ -567,7 +568,7 @@ class ImportScripts::BuddyBoss < ImportScripts::Base
           ex = @posts_excerpts[p["id"]]
 
           if !ex
-            skip = treu
+            skip = true
           else
             user_id = user_id_from_imported_user_id(p["post_author"]) ||
                       find_user_by_import_id(p["post_author"]).try(:id) ||
@@ -577,19 +578,19 @@ class ImportScripts::BuddyBoss < ImportScripts::Base
               id: p["id"],
               user_id: user_id,
               raw: ex["baked"],
-              tags: ex['categories'],
+              tags: ex['tags'],
               created_at: p["post_date"],
               post_create_action: proc do |new_post|
-                topic_embed_sql=<<-SQL
-                insert  into topic_embeds (topic_id, post_id, embed_url, created_at, updated_at)
-                        values(:topic_id, :post_id, :embed_url, :created_at, :updated_at)
-                SQL
-                DB.exec(topic_embed_sql,
-                        topic_id: new_post[:topic_id],
-                        post_id: new_post[:id],
-                        embed_url: ex["link"],
-                        created_at: new_post[:created_at],
-                        updated_at: new_post[:updated_at])
+                # topic_embed_sql=<<-SQL
+                # insert  into topic_embeds (topic_id, post_id, embed_url, created_at, updated_at)
+                #         values(:topic_id, :post_id, :embed_url, :created_at, :updated_at)
+                # SQL
+                # DB.exec(topic_embed_sql,
+                #         topic_id: new_post[:topic_id],
+                #         post_id: new_post[:id],
+                #         embed_url: ex["link"],
+                #         created_at: new_post[:created_at],
+                #         updated_at: new_post[:updated_at])
               end
             }
 
@@ -715,7 +716,7 @@ class ImportScripts::BuddyBoss < ImportScripts::Base
                            ).to_a
 
       break if comments.empty?
-      break if offset > 1001
+
       last_comment_id = comments[-1]["id"].to_i
       comment_ids = comments.map { |p| p["id"].to_i }
 
@@ -820,6 +821,12 @@ class ImportScripts::BuddyBoss < ImportScripts::Base
     end
   end
 
+  def update_topic_titles()
+    update1 = "update topics set title = topics.title || ' | ' || to_char(topics.created_at, 'Mon D, YYYY') || '' where category_id in (select id from categories where name = 'Comments on Notes')"
+    update2 = "update topics set fancy_title = topics.fancy_title || ' | ' || to_char(topics.created_at, 'Mon D, YYYY') || '' where category_id in (select id from categories where name = 'Comments on Notes')"
+    DB.exec(update1)
+    DB.exec(update2)
+  end
 
   def bbpress_query(sql)
     @client.query(sql, cache_rows: false)

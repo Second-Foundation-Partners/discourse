@@ -103,6 +103,9 @@ GEM
     crass (1.0.6)
     css_parser (1.9.0)
       addressable
+    debase (0.2.4.1)
+      debase-ruby_core_source (>= 0.10.2)
+    debase-ruby_core_source (0.10.12)
     debug_inspector (1.1.0)
     diff-lcs (1.4.4)
     diffy (3.4.0)
@@ -400,6 +403,8 @@ GEM
     rubocop-rspec (2.4.0)
       rubocop (~> 1.0)
       rubocop-ast (>= 1.1.0)
+    ruby-debug-ide (0.7.2)
+      rake (>= 0.8.1)
     ruby-prof (1.4.3)
     ruby-progressbar (1.11.0)
     ruby-readability (0.7.0)
@@ -504,6 +509,7 @@ DEPENDENCIES
   cose
   cppjieba_rb
   css_parser
+  debase
   diffy
   discourse-ember-rails (= 0.18.6)
   discourse-ember-source (~> 3.12.2)
@@ -539,6 +545,7 @@ DEPENDENCIES
   memory_profiler
   message_bus
   mini_mime
+  mini_portile2
   mini_racer
   mini_scheduler
   mini_sql
@@ -583,6 +590,7 @@ DEPENDENCIES
   rswag-specs
   rtlit
   rubocop-discourse
+  ruby-debug-ide
   ruby-prof
   ruby-readability
   rubyzip
@@ -608,4 +616,4 @@ DEPENDENCIES
   yaml-lint
 
 BUNDLED WITH
-   2.2.19
+   2.2.21
